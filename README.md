@@ -6,3 +6,6 @@
 ④一个刻度表示30分钟
 ⑤一个刻度表示1小时
 以上模式随着缩放自行切换
+
+运行截图：
+![image text](https://github.com/PPQingZhao/scaletimebar/)
