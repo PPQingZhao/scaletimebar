@@ -8,4 +8,5 @@
 以上模式随着缩放自行切换
 
 运行截图：
+
 <img src="https://github.com/PPQingZhao/scaletimebar/blob/master/screenshots/Screenshot_20190325-165929.jpg" width="400"/>
