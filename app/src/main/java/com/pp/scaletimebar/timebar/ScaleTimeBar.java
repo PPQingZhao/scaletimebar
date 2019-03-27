@@ -12,7 +12,9 @@ import android.util.AttributeSet;
 import android.util.DisplayMetrics;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
+import android.view.VelocityTracker;
 import android.view.View;
+import android.view.ViewConfiguration;
 import android.view.ViewGroup;
 import android.widget.Scroller;
 
@@ -38,6 +40,9 @@ public class ScaleTimeBar extends View {
     private int layout_height;
     private final List<SmallTime> smallTimeList = new ArrayList<>();
     private boolean drawDiving = false;
+    private VelocityTracker mVelocityTracker;
+    private int mMinimumFlingVelocity;
+    private int mMaximumFlingVelocity;
 
     public ScaleTimeBar(Context context) {
         this(context, null);
@@ -69,6 +74,11 @@ public class ScaleTimeBar extends View {
 
         mScroller = new Scroller(getContext());
         mScaleGestureDetector = new ScaleGestureDetector(getContext(), onScaleGestureListener);
+        ViewConfiguration viewConfiguration = ViewConfiguration.get(getContext());
+        //获得允许执行一个fling手势动作的最小速度值
+        mMinimumFlingVelocity = viewConfiguration.getScaledMinimumFlingVelocity();
+        //获得允许执行一个fling手势动作的最大速度值
+        mMaximumFlingVelocity = viewConfiguration.getScaledMaximumFlingVelocity();
 
         Calendar instance = Calendar.getInstance();
         instance.set(Calendar.HOUR_OF_DAY, 0);
@@ -342,7 +352,7 @@ public class ScaleTimeBar extends View {
             startY = timeBarStopY;
             //计算结束绘制位置
             stopX = timebarStatX + calcPixelsByTime(endValue - mScaleModel.getSartValue());
-            stopY = getHeight()-5;
+            stopY = getHeight() - 5;
 
             paint.setColor(smallTime.getTimeColor());
             canvas.drawRect(startX, startY, stopX, stopY, paint);
@@ -432,7 +442,7 @@ public class ScaleTimeBar extends View {
     int lastX = 0;
     MotionModel motionModel = MotionModel.None;
 
-    @Override
+   /* @Override
     public boolean onTouchEvent(MotionEvent event) {
         mScaleGestureDetector.onTouchEvent(event);
         if (mScaleGestureDetector.isInProgress()) return true;
@@ -490,6 +500,103 @@ public class ScaleTimeBar extends View {
                 break;
         }
         return true;
+    }*/
+
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        mScaleGestureDetector.onTouchEvent(event);
+        if (mScaleGestureDetector.isInProgress()) return true;
+        obtainVelocityTracker(event);
+        switch (event.getActionMasked()) {
+            case MotionEvent.ACTION_DOWN:   // 手指按下
+                motionModel = MotionModel.Down;
+                //记录按下x位置
+                lastX = (int) event.getX();
+                break;
+            case MotionEvent.ACTION_POINTER_DOWN: // 多指监听
+                motionModel = MotionModel.Zoom;
+                zoomModelCourseTime = calcCourseTimeMills();
+                break;
+            case MotionEvent.ACTION_MOVE:
+                if (motionModel == MotionModel.Zoom) {
+                } else if (motionModel == MotionModel.Down
+                        || motionModel == MotionModel.Move) {
+                    motionModel = MotionModel.Move;
+                    //获取当前x位置
+                    int currX = (int) event.getX();
+                    //开始移动
+                    scrollBy(calcScrollX(lastX, currX), 0);
+                    lastX = currX;
+                    //更新x记录
+                    updateCoursePosition();
+                    if (null != onBarMoveListener) {
+                        onBarMoveListener.onBarMove(calcCourseTimeMills());
+                    }
+                }
+                break;
+            case MotionEvent.ACTION_UP:
+                motionModel = MotionModel.None;
+                int scrollX = getScrollX();
+                int scrollY = getScrollY();
+                if (scrollX < 0) {
+                    motionModel = MotionModel.ComputeScroll;
+                    mScroller.startScroll(scrollX,
+                            scrollY,
+                            0 - scrollX,
+                            0 - scrollY);
+                    postInvalidate();
+                } else if (scrollX > calcMaxScaleScrollX()) {
+                    motionModel = MotionModel.ComputeScroll;
+                    mScroller.startScroll(scrollX,
+                            scrollY,
+                            calcMaxScaleScrollX() - scrollX,
+                            0 - scrollY);
+                    postInvalidate();
+                } else {
+                    mVelocityTracker.computeCurrentVelocity(1000);
+                    int xVelocity = (int) mVelocityTracker.getXVelocity();
+                    if (Math.abs(xVelocity) > mMinimumFlingVelocity && Math.abs(xVelocity) < mMaximumFlingVelocity) { //惯性滑动
+                        motionModel = MotionModel.ComputeScroll;
+                        mScroller.fling(scrollX,
+                                scrollY,
+                                -xVelocity,
+                                0,
+                                0,
+                                calcMaxScaleScrollX(),
+                                0,
+                                getHeight());
+                        awakenScrollBars(mScroller.getDuration());
+                        postInvalidate();
+                    } else {
+                        updateCoursePosition();
+                        if (null != onBarMoveListener) {
+                            onBarMoveListener.onBarMoveFinish(calcCourseTimeMills());
+                        }
+                    }
+                }
+                break;
+        }
+        return true;
+    }
+
+    /**
+     * 设置MotionEvent给VelocityTracker
+     *
+     * @param event
+     */
+    private void obtainVelocityTracker(MotionEvent event) {
+        if (null == mVelocityTracker) {
+            mVelocityTracker = VelocityTracker.obtain();
+        }
+        mVelocityTracker.addMovement(event);
+    }
+
+    @Override
+    protected void onDetachedFromWindow() {
+        super.onDetachedFromWindow();
+        if (null != mVelocityTracker) { //回收
+            mVelocityTracker.recycle();
+        }
     }
 
     private void updateCoursePosition() {
