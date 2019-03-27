@@ -1,4 +1,4 @@
-package com.xplay.pp.scaletimebar.timebar;
+package com.pp.scaletimebar.timebar;
 
 /**
  * 刻度尺游标

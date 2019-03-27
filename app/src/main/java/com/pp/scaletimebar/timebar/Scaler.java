@@ -1,4 +1,4 @@
-package com.xplay.pp.scaletimebar.timebar;
+package com.pp.scaletimebar.timebar;
 
 
 public class Scaler {

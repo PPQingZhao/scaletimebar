@@ -1,4 +1,4 @@
-package com.xplay.pp.scaletimebar.timebar;
+package com.pp.scaletimebar.timebar;
 
 public class SizeParam {
     //一个大刻度代表的度量

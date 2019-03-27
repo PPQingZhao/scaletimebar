@@ -1,4 +1,4 @@
-package com.xplay.pp.scaletimebar;
+package com.pp.scaletimebar;
 
 import android.annotation.SuppressLint;
 import android.graphics.Color;
@@ -6,9 +6,9 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.widget.TextView;
 
-import com.xplay.pp.scaletimebar.timebar.ScaleModel;
-import com.xplay.pp.scaletimebar.timebar.ScaleTimeBar;
-import com.xplay.pp.scaletimebar.timebar.SmallTime;
+import com.pp.scaletimebar.timebar.ScaleModel;
+import com.pp.scaletimebar.timebar.ScaleTimeBar;
+import com.pp.scaletimebar.timebar.SmallTime;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
