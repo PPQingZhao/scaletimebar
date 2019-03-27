@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.widget.TextView;
 
 import com.pp.scaletimebar.timebar.ScaleModel;
@@ -89,13 +90,13 @@ public class MainActivity extends AppCompatActivity {
             @SuppressLint("SimpleDateFormat")
             @Override
             public void onBarMove(long time) {
-//                Log.e("TAG", "**************** onBarMove");
+                Log.e("TAG", "**************** onBarMove");
                 main_tv_show.setText(simpleDateFormat.format(time));
             }
 
             @Override
             public void onBarMoveFinish(long time) {
-//                Log.e("TAG", "**************** onBarMoveFinish");
+                Log.e("TAG", "**************** onBarMoveFinish");
                 main_tv_show.setText(simpleDateFormat.format(time));
             }
         });

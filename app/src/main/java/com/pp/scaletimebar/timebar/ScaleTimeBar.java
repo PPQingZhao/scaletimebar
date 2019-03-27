@@ -184,12 +184,19 @@ public class ScaleTimeBar extends View {
             postInvalidate();
         } else {
             if (motionModel == MotionModel.ComputeScroll
-                    && null != onBarMoveListener) {
+                    || motionModel == MotionModel.FlingScroll) {
                 motionModel = MotionModel.None;
-                onBarMoveListener.onBarMoveFinish(calcCourseTimeMills());
             }
         }
         updateCoursePosition();
+        if (null != onBarMoveListener) {
+            if (motionModel == MotionModel.None) {
+                onBarMoveListener.onBarMoveFinish(calcCourseTimeMills());
+            } else if (motionModel == MotionModel.Move
+                    || motionModel == MotionModel.FlingScroll) {
+                onBarMoveListener.onBarMove(calcCourseTimeMills());
+            }
+        }
     }
 
     @Override
@@ -527,11 +534,11 @@ public class ScaleTimeBar extends View {
                     //开始移动
                     scrollBy(calcScrollX(lastX, currX), 0);
                     lastX = currX;
-                    //更新x记录
-                    updateCoursePosition();
-                    if (null != onBarMoveListener) {
-                        onBarMoveListener.onBarMove(calcCourseTimeMills());
-                    }
+//                    //更新x记录
+//                    updateCoursePosition();
+//                    if (null != onBarMoveListener) {
+//                        onBarMoveListener.onBarMove(calcCourseTimeMills());
+//                    }
                 }
                 break;
             case MotionEvent.ACTION_UP:
@@ -556,7 +563,7 @@ public class ScaleTimeBar extends View {
                     mVelocityTracker.computeCurrentVelocity(1000);
                     int xVelocity = (int) mVelocityTracker.getXVelocity();
                     if (Math.abs(xVelocity) > mMinimumFlingVelocity && Math.abs(xVelocity) < mMaximumFlingVelocity) { //惯性滑动
-                        motionModel = MotionModel.ComputeScroll;
+                        motionModel = MotionModel.FlingScroll;
                         mScroller.fling(scrollX,
                                 scrollY,
                                 -xVelocity,
@@ -666,7 +673,8 @@ public class ScaleTimeBar extends View {
         Down, //
         Zoom,
         Move,
-        ComputeScroll;
+        ComputeScroll,
+        FlingScroll;
     }
 
     private int dp2px(float dp) {
